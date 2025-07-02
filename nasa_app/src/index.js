@@ -14,16 +14,26 @@ const swaggerSpec = require('./utils/swaggerSpec');
 
 const app = express();
 
-// app.use(cors());
+// ✅ Allow requests from whitelisted frontend origins
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://52.213.19.57:3000',
+];
+
 app.use(cors({
-  origin: 'http://localhost:3000'
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS policy: Not allowed for origin ${origin}`));
+    }
+  },
 }));
 
 console.log('NASA API URL is:', config.NASA_API_URL);
 
 // Middleware
 app.use(express.json());
-
 
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -50,3 +60,4 @@ app.use(errorHandler);
 app.listen(config.PORT, () => {
   logger.info(`🚀 Server running at http://localhost:${config.PORT}`);
 });
+
